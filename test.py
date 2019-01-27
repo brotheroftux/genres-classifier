@@ -68,7 +68,7 @@ validation_np = validation.eval()
 
 print(colors.OKGREEN, 'OK', colors.ENDC)
 
-ae = AutoEncoder(data_dimension=__dim__, encoding_dimension=25, verbose=True)
+ae = AutoEncoder(data_dimension=__dim__, encoding_dimension=65, verbose=True)
 
 ae.initialize_model()
 
@@ -87,11 +87,11 @@ print(colors.BOLD, 'Fitting full model...', colors.ENDC)
 ae.fit_full_model(train_np, train_labels, 
                   test_data=validation_np,
                   test_labels=test_labels,
-                  epochs=100)
+                  epochs=300)
 print(colors.OKGREEN, 'Training complete.', colors.ENDC)
 
-labels = ae.full_model.predict(validation_np[-5:])
-demo_labels = test_labels[-5:]
+labels = ae.full_model.predict(validation_np[-17:])
+demo_labels = test_labels[-17:]
 
 print()
 print(colors.OKBLUE, '=======', colors.ENDC)

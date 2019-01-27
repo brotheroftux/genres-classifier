@@ -6,13 +6,14 @@ class AutoEncoder:
   """ Autoencoder class """
 
   def __init__ (self, data_dimension=100, encoding_dimension=10, classes=5,
-                loss='mean_squared_error', optimizer='adam', verbose=True):
+                loss='mean_squared_error', optimizer='adam', early_stop_patience=10, verbose=True):
     self.data_dimension = data_dimension
     self.encoding_dimension = encoding_dimension
     self.classes = classes
     self.optimizer = optimizer
     self.loss = loss
     self.verbose = verbose
+    self.patience = early_stop_patience
 
   def initialize_model (self):
     input_layer = keras.layers.Input(shape=[self.data_dimension])
@@ -36,10 +37,12 @@ class AutoEncoder:
     self.encoded_layer = encoded
 
   def extend_model (self, loss_function='binary_crossentropy'):
-    self.encoded_layer.trainable = False
     output_layer = keras.layers.Dense(self.classes, activation='sigmoid')(self.encoded_layer)
 
     self.full_model = keras.Model(self.input_layer, output_layer)
+
+    for layer in self.full_model.layers[:2]:
+      layer.trainable = False
 
     self.full_model.compile(
       optimizer=self.optimizer,
@@ -48,13 +51,20 @@ class AutoEncoder:
     )
     
   def fit (self, train_data, validation_data, epochs=40):
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_acc', patience=self.patience)
+
     self.model.fit(train_data, train_data,
                    epochs=epochs,
                    validation_data=(validation_data, validation_data),
+                   callbacks=[early_stop],
                    verbose=self.verbose)
 
   def fit_full_model (self, train_data, train_labels, test_data, test_labels, epochs=40):
-    self.full_model.fit(train_data, train_labels, epochs=epochs, verbose=self.verbose)
+    early_stop = keras.callbacks.EarlyStopping(monitor='acc', patience=self.patience)
+
+    self.full_model.fit(train_data, train_labels, epochs=epochs,
+                        callbacks=[early_stop],
+                        verbose=self.verbose)
 
     test_loss, test_acc = self.full_model.evaluate(test_data, test_labels)
     print('Test accuracy: {}, test loss: {}'.format(test_acc, test_loss))
