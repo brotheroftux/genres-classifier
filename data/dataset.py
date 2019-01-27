@@ -1,14 +1,21 @@
-import generate_data as gen
+from . import generate_data as gen
 import json, codecs
+import os
 import os.path as path
 
+__location__ = path.realpath(
+    path.join(os.getcwd(), path.dirname(__file__)))
+
 ENTRIES = 1000
-FILENAME = 'data.json'
+FILENAME = path.join(__location__, 'data.json')
 
 def get_data ():
   global ENTRIES, FILENAME
 
   if not path.exists(FILENAME):
+    print('\033[93m', 'No dataset found, generating.', '\033[0m')
+    print('\033[1m', 'Sample size: {}'.format(ENTRIES), '\033[0m')
+
     users, labels = gen.generate_dataset(ENTRIES)
 
     json_pre_serialize = {
@@ -20,6 +27,8 @@ def get_data ():
 
     return (users, labels)
   else:
+    print('\033[94m', 'Dataset found, loading.', '\033[0m')
+
     data = json.load(codecs.open(FILENAME, encoding='utf-8'))
 
     users = data['users']
